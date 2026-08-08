@@ -96,6 +96,15 @@ tagged, releasable state, so work can pause after any of them.
 **Exit criterion: the app no longer needs Rosetta — the original "won't work on next macOS" problem is solved here.**
 Everything after this phase is modernization depth, not survival.
 
+> **Prior art:** [gingergeek8192/webtorrent-desktop](https://github.com/gingergeek8192/webtorrent-desktop)
+> (June–July 2026) shipped the minimal version of this phase: Electron bumped straight to 39.8.10,
+> `bin/package.js` arch turned into a CLI flag (`--arch=arm64`), npm→pnpm, and an unsigned arm64 DMG
+> released as `v0.25.0-arm64`. **Zero `src/` changes** — so the `electron.remote` startup crash and the
+> Electron ≥32 `File.path` drag-drop breakage ship in that build; it also tells downloaders to disable
+> Gatekeeper system-wide (`spctl --master-disable`), which we won't do (local build / ad-hoc sign instead).
+> Useful to us: proves electron-packager 17 produces working arm64 darwin builds and that the app shell
+> boots on a modern Electron; the tiny arch-flag patch is worth cherry-picking.
+
 ## Phase 3 — Torrent engine current (weeks 3–4)
 
 - [ ] Introduce esbuild bundling for the app source (consumes ESM-only deps regardless of authoring
