@@ -189,7 +189,7 @@ Everything after this phase is modernization depth, not survival.
 | 4 | Auto-update for the fork | Disable (rebuild manually) / GitHub-releases-based updates, e.g. update-electron-app (requires public repo) | **open** |
 | 5 | UI stack endgame | MUI v7 migration / hand-rolled components (tommyent's branch did this — evaluate) / leave material-ui until it breaks | **open** |
 | 6 | Package manager | npm (minimal diff vs upstream) / pnpm (gingergeek baseline) | **✅ 2026-08-09: pnpm, adopted with the baseline** |
-| 7 | Collaboration mode | Comment on #1907 + PR fixes to gingergeek8192 / stay a silent downstream / PR upstream anyway | **open — outreach comment drafted, awaiting go-ahead** |
+| 7 | Collaboration mode | Comment on #1907 + PR fixes to gingergeek8192 / stay a silent downstream / PR upstream anyway | **✅ 2026-08-09: [outreach posted on #1907](https://github.com/webtorrent/webtorrent-desktop/issues/1907#issuecomment-5231885225); install-fix PR to gingergeek pending their reply** |
 
 ## Success criteria
 
