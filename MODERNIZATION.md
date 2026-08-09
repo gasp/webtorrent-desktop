@@ -123,6 +123,15 @@ is linked. Remotes: `origin` = our fork, `upstream` = webtorrent, `gingergeek` =
 - [ ] Confirm existing `~/Library/Application Support/WebTorrent/config.json` loads unchanged
       (needs gaspard's real profile — deliberately not touched by automated runs)
 - [ ] Install the DMG from `dist/WebTorrent-v0.24.0.dmg` into /Applications — left to gaspard
+- [ ] Developer ID signing (gated on decision #8): the inherited `--sign` path is **broken three ways**
+      (audited 2026-08-09 against the pinned packages): `bin/package.js` calls `@electron/osx-sign` with
+      the removed v0.x function-call API instead of destructuring `sign`/`signAsync`; its kebab-case
+      options (`entitlements-inherit`, `signature-flags`) are silently ignored by the 1.x API
+      (per-file options moved to `optionsForFile`); and the signing identity/Apple ID are hardcoded to
+      WebTorrent LLC / feross. `bin/darwin-entitlements.plist` also ships
+      `allow-unsigned-executable-memory` (discouraged on Electron ≥12 — `allow-jit` suffices) and
+      `com.apple.security.cs.debugger`, which doesn't belong in a release build. The signing guide
+      (Claude artifact "WebTorrent Desktop — Signing & Notarization Guide") has a drop-in replacement.
 
 **Exit criterion: the app no longer needs Rosetta — the original "won't work on next macOS" problem is solved here.**
 Everything after this phase is modernization depth, not survival.
@@ -196,7 +205,8 @@ Everything after this phase is modernization depth, not survival.
 | 4 | Auto-update for the fork | Disable (rebuild manually) / GitHub-releases-based updates, e.g. update-electron-app (requires public repo) | **open** |
 | 5 | UI stack endgame | MUI v7 migration / hand-rolled components (tommyent's branch did this — evaluate) / leave material-ui until it breaks | **open** |
 | 6 | Package manager | npm (minimal diff vs upstream) / pnpm (gingergeek baseline) | **✅ 2026-08-09: pnpm, adopted with the baseline** |
-| 7 | Collaboration mode | Comment on #1907 + PR fixes to gingergeek8192 / stay a silent downstream / PR upstream anyway | **✅ 2026-08-09: [outreach posted on #1907](https://github.com/webtorrent/webtorrent-desktop/issues/1907#issuecomment-5231885225); install-fix PR to gingergeek pending their reply** |
+| 7 | Collaboration mode | Comment on #1907 + PR fixes to gingergeek8192 / stay a silent downstream / PR upstream anyway | **✅ 2026-08-09: [outreach posted on #1907](https://github.com/webtorrent/webtorrent-desktop/issues/1907#issuecomment-5231885225); gaspard declined sending the install-fix PR for now** |
+| 8 | Distribution signing | Enroll in Apple Developer Program ($99/yr; individual = legal name in Gatekeeper prompts) / keep ad-hoc (personal builds only) / wait for gingergeek8192's announced notarized release | **open — see the signing guide artifact** |
 
 ## Success criteria
 
