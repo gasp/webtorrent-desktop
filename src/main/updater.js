@@ -15,6 +15,11 @@ const AUTO_UPDATE_URL = config.AUTO_UPDATE_URL +
   '&sysarch=' + config.OS_SYSARCH
 
 function init () {
+  // Fork: auto-update is disabled. The upstream feed at webtorrent.io serves
+  // the abandoned 2020 release line; updates for this fork ship as GitHub
+  // releases instead (MODERNIZATION.md decision #4).
+  if (config.IS_FORK) return
+
   if (process.platform === 'linux') {
     initLinux()
   } else {

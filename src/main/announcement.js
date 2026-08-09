@@ -25,6 +25,10 @@ const ANNOUNCEMENT_URL =
  *   }
  */
 function init () {
+  // Fork: don't poll upstream's announcement endpoint (MODERNIZATION.md
+  // decision #4 — no traffic to webtorrent.io from the fork).
+  if (config.IS_FORK) return
+
   const get = require('simple-get')
   get.concat(ANNOUNCEMENT_URL, onResponse)
 }

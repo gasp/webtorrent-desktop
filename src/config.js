@@ -78,6 +78,11 @@ module.exports = {
   HOME_PAGE_URL: 'https://webtorrent.io',
   TWITTER_PAGE_URL: 'https://twitter.com/WebTorrentApp',
 
+  // This is the community-maintained fork (github.com/gasp/webtorrent-desktop).
+  // When true, all phone-home traffic to upstream's webtorrent.io endpoints
+  // (auto-update feed, announcements, telemetry, crash uploads) is disabled.
+  IS_FORK: true,
+
   IS_PORTABLE,
   IS_PRODUCTION,
   IS_TEST,

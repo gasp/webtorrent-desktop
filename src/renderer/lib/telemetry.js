@@ -36,9 +36,9 @@ function send (state) {
   telemetry.torrentStats = getTorrentStats(state)
   telemetry.approxNumTorrents = telemetry.torrentStats.approxCount
 
-  if (!config.IS_PRODUCTION) {
-    // Development: telemetry used only for local debugging
-    // Empty uncaught errors, etc at the start of every run
+  if (!config.IS_PRODUCTION || config.IS_FORK) {
+    // Development and fork builds: telemetry stays local for debugging and is
+    // never sent to upstream's server (MODERNIZATION.md decision #4)
     return reset()
   }
 
