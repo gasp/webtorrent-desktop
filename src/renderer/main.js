@@ -24,6 +24,7 @@ const createGetter = require('fn-getter')
 const debounce = require('debounce')
 const dragDrop = require('drag-drop')
 const electron = require('electron')
+const remote = require('@electron/remote')
 const fs = require('fs')
 const React = require('react')
 const ReactDOM = require('react-dom')
@@ -172,7 +173,7 @@ function onState (err, _state) {
   window.addEventListener('focus', onFocus)
   window.addEventListener('blur', onBlur)
 
-  if (electron.remote.getCurrentWindow().isVisible()) {
+  if (remote.getCurrentWindow().isVisible()) {
     sound.play('STARTUP')
   }
 
@@ -440,7 +441,7 @@ function resumeTorrents () {
 // Set window dimensions to match video dimensions or fill the screen
 function setDimensions (dimensions) {
   // Don't modify the window size if it's already maximized
-  if (electron.remote.getCurrentWindow().isMaximized()) {
+  if (remote.getCurrentWindow().isMaximized()) {
     state.window.bounds = null
     return
   }
@@ -452,7 +453,7 @@ function setDimensions (dimensions) {
     width: window.outerWidth,
     height: window.outerHeight
   }
-  state.window.wasMaximized = electron.remote.getCurrentWindow().isMaximized
+  state.window.wasMaximized = remote.getCurrentWindow().isMaximized
 
   // Limit window size to screen size
   const screenWidth = window.screen.width
@@ -484,7 +485,9 @@ function onOpen (files) {
   // File API seems to transform "magnet:?foo" in "magnet:///?foo"
   // this is a sanitization
   files = files.map(file => {
-    if (typeof file !== 'string') return file
+    // Electron ≥32 removed File.path, so resolve dropped/pasted W3C File
+    // objects to filesystem paths here; every consumer accepts path strings
+    if (typeof file !== 'string') return electron.webUtils.getPathForFile(file)
     return file.replace(/^magnet:\/+\?/i, 'magnet:?')
   })
 
