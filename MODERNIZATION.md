@@ -49,7 +49,7 @@ is linked. Remotes: `origin` = our fork, `upstream` = webtorrent, `gingergeek` =
 
 | Component | Current | Status | Target |
 |---|---|---|---|
-| Electron | 39.8.10 (was 27) | declared at baseline, **unvalidated by us**; out of support (latest 3 = 40–42) | 42.x, then rolling |
+| Electron | **42.8.1 (current stable)** ✅ | staged 39→40→41→42, smoke-tested per major (2026-08-09) | rolling: stay within latest 3 |
 | Mac packaging | arch is a CLI flag (`--arch=arm64`) | no arm64 build produced/verified by us yet; unsigned | native arm64, ad-hoc signed locally |
 | Package manager | pnpm 10 (+ ~25 security overrides) | adopted with baseline; CI workflows still assume npm | pnpm everywhere incl. CI |
 | Node (engines) | ^18–^24 ✅ | widened at baseline | pin 24 LTS in `.nvmrc`/CI |
@@ -58,7 +58,7 @@ is linked. Remotes: `origin` = our fork, `upstream` = webtorrent, `gingergeek` =
 | material-ui | 0.20.2 (2018) | abandoned; blocks React 18+ | MUI v7 or hand-rolled components |
 | Integration tests | Spectron 19 + tape | dead (its chromedriver postinstall 404s on arm64 — build script disabled) | Playwright for Electron, same screenshot-diff idea |
 | Packaging tools | @electron/packager 18, @electron/osx-sign, @electron/notarize ✅ | swapped at baseline | keep current |
-| Vulnerabilities | 75 pre-baseline; many pinned via pnpm overrides | needs a fresh `pnpm audit` to re-baseline | 0 high/critical in prod deps |
+| Vulnerabilities | **7** (0 critical): all no-patch or deferred-with-reason | was 75 (3C/46H) pre-baseline; see Phase 1 notes | 0 high/critical in prod deps |
 | Renderer security | nodeIntegration, no contextIsolation, @electron/remote | legacy; `electron.remote` call sites now crash for real on E39 | contextBridge + preload, sandboxed UI renderer |
 
 ## Guiding principles
@@ -74,48 +74,55 @@ is linked. Remotes: `origin` = our fork, `upstream` = webtorrent, `gingergeek` =
 - [x] Rebase master onto gingergeek8192's fork (baseline change above) *(2026-08-09)*
 - [x] `pnpm install` + `pnpm run build` work on Tahoe/arm64 — required disabling `electron-chromedriver`
       and `spectron` build scripts in `pnpm-workspace.yaml` (both belong to the dead test stack) *(2026-08-09)*
-- [ ] Pin Node 24 (`.nvmrc`); currently running on host Node 25
-- [ ] Fix the 3 `electron.remote` call sites in `src/renderer/main.js` (use `@electron/remote`) —
-      on the Electron 39 baseline these now break startup sound, cast discovery, and delayed init for real
-- [ ] Check drag-drop of .torrent files: Electron ≥32 removed `File.path` (→ `webUtils.getPathForFile()`)
-- [ ] `pnpm start` works; smoke-test core flows by hand: add torrent, download, stream video, ESC back,
-      prefs, quit/state-save
-- [ ] CI: workflows still run `npm install` — switch to pnpm (`pnpm/action-setup`), bump actions
-      (checkout@v4, setup-node@v4), Node 24, add a macOS job; lint green
-- [ ] Sync the one upstream commit we're behind (electron-winstaller 5.4.4 bot bump) or fold into Phase 1
-- [ ] Tag `fork-baseline`
+- [x] Pin Node 24 (`.nvmrc`) *(2026-08-09)*
+- [x] Fix the 3 `electron.remote` call sites in `src/renderer/main.js` *(2026-08-09, commit 750fc4d)*
+- [x] Drag-drop: resolve dropped W3C File objects via `webUtils.getPathForFile()` at the `onOpen`
+      boundary — all consumers accept path strings *(2026-08-09, commit 750fc4d)*
+- [x] Smoke-tested with an isolated test profile (`NODE_ENV=test`, `--enable-logging`): app alive 25s,
+      all three processes init, dispatches flow, no uncaught errors *(2026-08-09)*
+- [ ] Hand smoke-test of full flows (download, stream, ESC, prefs) — needs a human at the keyboard
+- [x] CI workflows rewritten for pnpm/Node 24/macOS + upload-artifact v4 — **parked on local branch
+      `ci-pnpm`**: pushes touching `.github/workflows` are rejected because the gh token lacks the
+      `workflow` scope. Unblock: `gh auth refresh -h github.com -s workflow`, then push the branch.
+- [ ] Sync the one upstream commit we're behind (electron-winstaller 5.4.4 bot bump) — folded into Phase 1 triage
+- [x] Tag `fork-baseline` *(2026-08-09, at 2e29ef7)*
 
 ## Phase 1 — Security keep-alive (week 1)
 
-- [ ] Re-baseline the audit under pnpm (`pnpm audit`): the baseline's ~25 workspace overrides already
-      pin many vulnerable transitives (`got`, `ws`, `tar-fs`, `protobufjs`, `plist`, `semver`,
-      `music-metadata`, `xmldom`, …) — verify what remains and fix or document it
+- [x] Audit re-baselined *(2026-08-09)*: pre-baseline 75 (3 critical/46 high) → 15 under the baseline's
+      overrides → **7 after adding same-major overrides** (brace-expansion, js-yaml, nanoid, postcss).
+      All 7 remaining are documented: `ip` (chromecasts, no patch — decision #2), `ip-address` ×3
+      (cross-major inside socks/DHT tree — superseded by webtorrent 3.x in Phase 3), `image-size` ×2
+      (optional appdmg, build-time only, no patch), `js-yaml` via depcheck (dev-only; no patched 3.x exists)
 - [ ] Decision #2: the casting stack (`chromecasts`, `dlnacasts`, `airplayer`, and their deps) is
       unmaintained and contributes a large share of the high-severity findings — keep, drop, or replace
       (note: tommyent's branch has "docs: define casting engine interface" + "refactor: move casting
       into torrent engine" — check before deciding)
-- [ ] Validate the baseline's Electron 39, then 39→40→41→42 one major at a time, reading the official
-      breaking-changes doc and smoke-testing before moving on. Known tripwires:
+- [x] Electron validated at 39, then bumped 39→40.10.6→41.10.4→**42.8.1 (current stable)**, one major
+      per commit, launch-smoke-tested at every step with zero uncaught errors *(2026-08-09)*. Original tripwire notes:
       - `File.path` removed (E32) → `webUtils.getPathForFile()` — verify fixed in Phase 0
       - `@electron/remote` version compatibility at each step
       - default `sandbox`/`webPreferences` shifts (app sets them explicitly, verify each window)
       - tommyent's branch is already on Electron 43 — mine it for the fixes each bump needed
 - [x] Swap archived packagers: `@electron/packager` 18, `@electron/osx-sign`, `@electron/notarize`
       *(done at the gingergeek baseline)*
-- [ ] Neutralize phone-home endpoints, which point at upstream's servers
-      (`src/main/updater.js`, `src/main/announcement.js`, `src/renderer/lib/telemetry.js`,
-      `src/crash-reporter.js`): disable, or repoint per decision #4
-- [ ] Tag `v0.25.0-fork`
+- [x] Phone-home neutralized via `config.IS_FORK` *(2026-08-09)*: auto-update feed, announcements,
+      telemetry upload, and crash-dump upload all disabled; crash dumps + telemetry still collected
+      locally. Fork auto-update remains decision #4.
+- [x] Tag `v0.25.0-fork` *(2026-08-09, at d6be4e0)*
 
 ## Phase 2 — Apple Silicon native build (week 2) ← the deadline item
 
 - [x] `bin/package.js`: arch selectable via `--arch=arm64` *(done at the gingergeek baseline)*
-- [ ] Build the arm64 DMG ourselves: `pnpm run package -- darwin --arch=arm64`
-- [ ] Signing for personal use: ad-hoc signature (`identity: '-'`) is enough for a locally-built app —
-      gingergeek8192 says a notarized release is coming; adopt theirs if it lands first
-- [ ] Verify: Activity Monitor shows *Apple* architecture; app launches with Rosetta not installed
+- [x] arm64 DMG + zip built *(2026-08-09)*: `pnpm run package -- darwin --arch=arm64`. Required
+      `node-linker=hoisted` in `.npmrc` (packager's prune step can't walk pnpm symlinks).
+- [x] Ad-hoc signing wired into the unsigned packaging path (`codesign --force --deep --sign -`);
+      signature verifies (`flags=0x2(adhoc)`). Developer ID + notarization handled separately.
+- [x] Verified *(2026-08-09)*: `lipo -archs` = arm64 only (Rosetta can never engage); the packaged
+      .app launched from dist/ and ran 15s with zero errors against an isolated test profile
 - [ ] Confirm existing `~/Library/Application Support/WebTorrent/config.json` loads unchanged
-- [ ] Deliverable: native arm64 DMG installed in /Applications replacing the Intel build
+      (needs gaspard's real profile — deliberately not touched by automated runs)
+- [ ] Install the DMG from `dist/WebTorrent-v0.24.0.dmg` into /Applications — left to gaspard
 
 **Exit criterion: the app no longer needs Rosetta — the original "won't work on next macOS" problem is solved here.**
 Everything after this phase is modernization depth, not survival.
