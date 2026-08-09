@@ -120,7 +120,7 @@
     "open-config": "node ./bin/open-config.js",
     "package": "node ./bin/package.js",
     "start": "pnpm run build && electron --no-sandbox .",
-    "test": "standard && depcheck --ignores=standard,@babel/eslint-parser --ignore-dirs=build,dist",
+    "test": "standard && depcheck --ignores=standard,@babel/eslint-parser,@xmldom/xmldom,filenamify,protobufjs,trim-repeated --ignore-dirs=build,dist",
     "test-integration": "pnpm run build && node ./test",
     "update-authors": "./bin/update-authors.sh",
     "watch": "nodemon --exec \"pnpm run start\" --ext js,css --ignore build/ --ignore dist/"

@@ -20,7 +20,6 @@ const pkg = require('../package.json')
 const BUILD_NAME = config.APP_NAME + '-v' + config.APP_VERSION
 const BUILD_PATH = path.join(config.ROOT_PATH, 'build')
 const DIST_PATH = path.join(config.ROOT_PATH, 'dist')
-const NODE_MODULES_PATH = path.join(config.ROOT_PATH, 'node_modules')
 
 const argv = minimist(process.argv.slice(2), {
   boolean: [
