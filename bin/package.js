@@ -256,10 +256,22 @@ function buildDarwin (cb) {
         })
       } else {
         printWarning()
+        adHocSignApp()
         pack(cb)
       }
     } else {
       printWarning()
+    }
+
+    // Ad-hoc signature (identity "-"): Apple Silicon refuses to run binaries
+    // with no signature at all, and the packager's Info.plist/icon edits break
+    // the seal Electron ships with. This keeps locally-built apps launchable;
+    // it is not a substitute for Developer ID + notarization (use --sign).
+    function adHocSignApp () {
+      console.log('Mac: Ad-hoc signing app...')
+      cp.execSync(`codesign --force --deep --sign - "${appPath}"`)
+      cp.execSync(`codesign --verify --deep "${appPath}"`)
+      console.log('Mac: Ad-hoc signed app.')
     }
 
     function signApp (cb) {
