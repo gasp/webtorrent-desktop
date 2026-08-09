@@ -2,12 +2,17 @@ allowBuilds:
   bufferutil: true
   core-js: true
   electron: true
-  electron-chromedriver: true
+  # electron-chromedriver postinstall 404s (no darwin-arm64 chromedriver for its
+  # pinned Electron); it's only needed by Spectron, which is dead — parked until
+  # the Playwright migration (Phase 5).
+  electron-chromedriver: false
   electron-winstaller: true
   fs-xattr: true
   macos-alias: true
   protobufjs: true
-  spectron: true
+  # spectron's rpath-fix postinstall fails on modern Electron; dead framework,
+  # parked until the Playwright migration (Phase 5).
+  spectron: false
   utf-8-validate: true
   utp-native: true
 overrides:
