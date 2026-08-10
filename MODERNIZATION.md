@@ -81,9 +81,10 @@ is linked. Remotes: `origin` = our fork, `upstream` = webtorrent, `gingergeek` =
 - [x] Smoke-tested with an isolated test profile (`NODE_ENV=test`, `--enable-logging`): app alive 25s,
       all three processes init, dispatches flow, no uncaught errors *(2026-08-09)*
 - [ ] Hand smoke-test of full flows (download, stream, ESC, prefs) — needs a human at the keyboard
-- [x] CI workflows rewritten for pnpm/Node 24/macOS + upload-artifact v4 — **parked on local branch
-      `ci-pnpm`**: pushes touching `.github/workflows` are rejected because the gh token lacks the
-      `workflow` scope. Unblock: `gh auth refresh -h github.com -s workflow`, then push the branch.
+- [x] CI workflows on pnpm/Node 24 with a macOS job + upload-artifact v4 — gaspard granted the
+      `workflow` scope, the branch ran green on Actions (lint + build on ubuntu & macOS), and
+      `ci-pnpm` was merged to master *(2026-08-10)*. Minor follow-up: bump checkout/setup-node/action-setup
+      majors when their Node-24 releases land (deprecation annotation only, non-blocking).
 - [ ] Sync the one upstream commit we're behind (electron-winstaller 5.4.4 bot bump) — folded into Phase 1 triage
 - [x] Tag `fork-baseline` *(2026-08-09, at 2e29ef7)*
 
