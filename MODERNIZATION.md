@@ -156,8 +156,11 @@ Everything after this phase is modernization depth, not survival.
 
 ## Phase 3 — Torrent engine current (weeks 3–4)
 
-- [ ] Introduce esbuild bundling for the app source (consumes ESM-only deps regardless of authoring
-      style; also cuts startup cost — this codebase lazy-requires everywhere to compensate)
+- [x] Introduce esbuild bundling for the app source *(2026-08-10, PR #1)*: Babel removed; `bin/build.js`
+      transpiles everything 1:1 and bundles the UI renderer (packages + `config.js` external, so
+      `__dirname`-relative paths and the lazy-require perf pattern survive). The torrent-engine entry
+      stays unbundled so its upcoming ESM-only `import('webtorrent')` isn't rewritten to `require()`.
+      Renderer init dropped to ~150ms in smoke tests. `target: node24` matches Electron 42's Node 24.18.
 - [ ] webtorrent 1.x → 3.x following the official migration guide
       (ESM-only; HTTP server API split; `file.getBuffer()` → web APIs; file-selection API changes)
 - [ ] Related majors, all ESM now: `parse-torrent`, `create-torrent`, `music-metadata`
