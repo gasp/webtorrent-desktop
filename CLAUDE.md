@@ -9,18 +9,18 @@ Consult it before starting work; update its checkboxes and decision log as work 
 ## Commands
 
 ```bash
-npm start                  # Build, then launch the app (electron --no-sandbox .)
-npm run watch              # Auto-restart the app on js/css changes (nodemon)
-npm run build              # Babel-compile src/ → build/ (JSX transform only)
-npm test                   # Lint only: standard (JS Standard Style) + depcheck — there are no unit tests
-npm run test-integration   # Build + run Spectron/Tape integration tests (node ./test)
-npm run package -- [darwin|linux|win32|all] [--sign] [--package=<type>]
+pnpm start                  # Build, then launch the app (electron --no-sandbox .)
+pnpm run watch              # Auto-restart the app on js/css changes (nodemon)
+pnpm run build              # esbuild: transpile src/ → build/, bundle the UI renderer (bin/build.js)
+pnpm test                   # Lint only: standard (JS Standard Style) + depcheck — there are no unit tests
+pnpm run test-integration   # Build + run Spectron/Tape integration tests (dead — Playwright migration pending)
+pnpm run package -- [darwin|linux|win32|all] [--arch=arm64] [--sign] [--package=<type>]
 ```
 
-- **The app runs compiled code**: `index.js` requires `./build/main`, not `src/`. After editing `src/`, run `npm run build` (or use `npm start` / `npm run watch`, which build first). Babel only transforms JSX; everything else is plain CommonJS.
-- Run a single integration test file: `npm run build && node test/test-video.js` (each `test/test-*.js` is a standalone tape module).
-- Requires Node ^16 || ^18 (see `engines` in package.json).
-- Code style: [standard](https://standardjs.com) with `@babel/eslint-parser`; JSX lives in plain `.js` files.
+- **The app runs compiled code**: `index.js` requires `./build/main`, not `src/`. After editing `src/`, run `pnpm run build` (or use `pnpm start` / `pnpm run watch`, which build first). `bin/build.js` transpiles JSX and bundles only `src/renderer/main.js` (npm packages and `config.js` stay external requires); everything else is transpiled 1:1 CommonJS.
+- Smoke-test launches must use `NODE_ENV=test` — it redirects config to an isolated `/tmp/WebTorrentTest` profile instead of the user's real `~/Library/Application Support/WebTorrent`.
+- Requires Node 24 (`.nvmrc`) and pnpm 10; dependency security pins live in `pnpm-workspace.yaml` `overrides`.
+- Code style: [standard](https://standardjs.com); JSX lives in plain `.js` files.
 
 ## Architecture
 
@@ -67,4 +67,4 @@ Spectron + tape, driven by **screenshot diffing** against reference images in `t
 
 ## Releases
 
-See `RELEASE_PROCESS.md`. CI (`.github/workflows/ci.yml`) runs lint on push/PR; installers are built via the manually-triggered `package.yml` workflow or `npm run package`.
+See `RELEASE_PROCESS.md`. CI (`.github/workflows/ci.yml`) runs lint + build on push/PR (Ubuntu and macOS, pnpm/Node 24); installers are built via the manually-triggered `package.yml` workflow or `pnpm run package`.
